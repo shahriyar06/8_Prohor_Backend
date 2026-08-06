@@ -21,7 +21,7 @@ export async function sendOtpEmail({ to, name, otp }: SendOtpEmailParams) {
         <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; background: #f4f4f4; padding: 16px 24px; text-align: center; border-radius: 8px; margin: 16px 0;">
           ${otp}
         </div>
-        <p style="color:#666; font-size:14px;">এই কোড 2 মিনিট পর expire হয়ে যাবে। যদি তুমি এই account না বানিয়ে থাকো, এই email ignore করো।</p>
+        <p style="color:#666; font-size:14px;">এই কোড 1 মিনিট পর expire হয়ে যাবে। যদি তুমি এই account না বানিয়ে থাকো, এই email ignore করো।</p>
       </div>
     `,
   });

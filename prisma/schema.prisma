@@ -39,6 +39,9 @@ model User {
   refreshTokens       RefreshToken[]
   verificationTokens  EmailVerificationToken[]
 
+  ownedOrganizations   Organization[]
+  organizationMembers  OrganizationMember[]
+
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
@@ -68,5 +71,63 @@ model EmailVerificationToken {
   createdAt   DateTime  @default(now()) @map("created_at")
 
   @@map("email_verification_tokens")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String   @map("owner_id")
+  owner     User     @relation(fields: [ownerId], references: [id])
+
+  roles     Role[]
+  members   OrganizationMember[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("organizations")
+}
+
+model Role {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  // isSystem = true শুধু auto-created "Admin" role-এর জন্য — এটা কখনো edit/delete করা যাবে না
+  isSystem       Boolean  @default(false) @map("is_system")
+
+  permissions    RolePermission[]
+  members        OrganizationMember[]
+
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([organizationId, name])
+  @@map("roles")
+}
+
+model RolePermission {
+  id             String @id @default(uuid())
+  roleId         String @map("role_id")
+  role           Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  // যেমন: "tasks.create", "expense.view" — app-এর route-key
+  permissionKey  String @map("permission_key")
+
+  @@unique([roleId, permissionKey])
+  @@map("role_permissions")
+}
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String   @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId         String   @map("role_id")
+  role           Role     @relation(fields: [roleId], references: [id])
+
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
 }
 
