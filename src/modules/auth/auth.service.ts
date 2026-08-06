@@ -36,14 +36,43 @@ export const authService = {
     const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
     const isEmailVerified = !env.ENABLE_EMAIL_VERIFICATION;
 
-    const user = await prisma.user.create({
-      data: {
-        name: input.name,
-        email: input.email,
-        passwordHash,
-        accountType: input.accountType,
-        isEmailVerified,
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          name: input.name,
+          email: input.email,
+          passwordHash,
+          accountType: input.accountType,
+          isEmailVerified,
+        },
+      });
+
+      if (input.accountType === "organization") {
+        const organization = await tx.organization.create({
+          data: {
+            name: input.organizationName!,
+            ownerId: newUser.id,
+          },
+        });
+
+        const adminRole = await tx.role.create({
+          data: {
+            organizationId: organization.id,
+            name: "Admin",
+            isSystem: true,
+          },
+        });
+
+        await tx.organizationMember.create({
+          data: {
+            organizationId: organization.id,
+            userId: newUser.id,
+            roleId: adminRole.id,
+          },
+        });
+      }
+
+      return newUser;
     });
 
     if (env.ENABLE_EMAIL_VERIFICATION) {
