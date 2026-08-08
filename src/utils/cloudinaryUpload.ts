@@ -12,3 +12,17 @@ export function uploadToCloudinary(buffer: Buffer, folder: string): Promise<stri
     stream.end(buffer);
   });
 }
+
+export async function deleteFromCloudinary(fileUrl: string): Promise<void> {
+  try {
+    const parts = fileUrl.split("/upload/")[1]; 
+    if (!parts) return;
+
+    const withoutVersion = parts.replace(/^v\d+\//, ""); 
+    const publicId = withoutVersion.replace(/\.[^/.]+$/, ""); 
+
+    await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.error("Cloudinary delete failed:", err instanceof Error ? err.message : err);
+  }
+}
