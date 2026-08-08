@@ -74,16 +74,21 @@ model EmailVerificationToken {
 }
 
 model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  ownerId   String   @map("owner_id")
-  owner     User     @relation(fields: [ownerId], references: [id])
+  id            String   @id @default(uuid())
+  name          String
+  ownerId       String   @map("owner_id")
+  owner         User     @relation(fields: [ownerId], references: [id])
 
-  roles     Role[]
-  members   OrganizationMember[]
+  prefix        String?  
+  address       String?
+  phoneNumber   String?  @map("phone_number")
+  memberCounter Int      @default(0) @map("member_counter") 
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  roles         Role[]
+  members       OrganizationMember[]
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@map("organizations")
 }
@@ -93,7 +98,7 @@ model Role {
   organizationId String   @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
-  // isSystem = true শুধু auto-created "Admin" role-এর জন্য — এটা কখনো edit/delete করা যাবে না
+
   isSystem       Boolean  @default(false) @map("is_system")
 
   permissions    RolePermission[]
@@ -109,11 +114,30 @@ model RolePermission {
   id             String @id @default(uuid())
   roleId         String @map("role_id")
   role           Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  // যেমন: "tasks.create", "expense.view" — app-এর route-key
+
   permissionKey  String @map("permission_key")
 
   @@unique([roleId, permissionKey])
   @@map("role_permissions")
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  volunteer
+  intern
+}
+
+enum MemberStatus {
+  active
+  inactive
+  suspended
 }
 
 model OrganizationMember {
@@ -125,9 +149,37 @@ model OrganizationMember {
   roleId         String   @map("role_id")
   role           Role     @relation(fields: [roleId], references: [id])
 
+  profile        MemberProfile?
+
   joinedAt       DateTime @default(now()) @map("joined_at")
 
   @@unique([organizationId, userId])
   @@map("organization_members")
+}
+
+
+model MemberProfile {
+  id                   String   @id @default(uuid())
+  organizationMemberId String   @unique @map("organization_member_id")
+  organizationMember   OrganizationMember @relation(fields: [organizationMemberId], references: [id], onDelete: Cascade)
+
+  memberId       String   @map("member_id") // যেমন: MEM-0001
+  profilePhoto   String?  @map("profile_photo")
+  phoneNumber    String   @map("phone_number")
+  dateOfBirth    DateTime @map("date_of_birth")
+  gender         Gender
+  bloodGroup     String?  @map("blood_group")
+  nationality    String
+  address        String
+  designation    String
+  department     String?
+  joinDate       DateTime @map("join_date")
+  employmentType EmploymentType @map("employment_type")
+  memberStatus   MemberStatus   @default(active) @map("member_status")
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("member_profiles")
 }
 
