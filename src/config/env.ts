@@ -19,5 +19,8 @@ export const env = {
   RESEND_API_KEY: required("RESEND_API_KEY"),
   EMAIL_FROM: process.env.EMAIL_FROM || "onboarding@resend.dev",
   ENABLE_EMAIL_VERIFICATION: process.env.ENABLE_EMAIL_VERIFICATION === "true",
+  CLOUDINARY_CLOUD_NAME: required("CLOUDINARY_CLOUD_NAME"),
+  CLOUDINARY_API_KEY: required("CLOUDINARY_API_KEY"),
+  CLOUDINARY_API_SECRET: required("CLOUDINARY_API_SECRET"),
   NODE_ENV: process.env.NODE_ENV || "development",
 };
