@@ -16,6 +16,7 @@ import {
   VerifyOtpInput,
   ResendOtpInput,
   UpdateProfileInput,
+  ChangePasswordInput,
 } from "./auth.validation";
 
 const SALT_ROUNDS = 10;
@@ -241,6 +242,28 @@ export const authService = {
     return this.toSafeUser(user);
   },
 
+  async changePassword(userId: string, input: ChangePasswordInput) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.passwordHash) throw new AppError("User not found", 404);
+
+    const isMatch = await bcrypt.compare(
+      input.currentPassword,
+      user.passwordHash,
+    );
+    if (!isMatch) throw new AppError("Current password is incorrect", 401);
+
+    const newPasswordHash = await bcrypt.hash(input.newPassword, SALT_ROUNDS);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    await prisma.refreshToken.updateMany({
+      where: { userId, revoked: false },
+      data: { revoked: true },
+    });
+  },
+
   toSafeUser(user: {
     id: string;
     name: string;
@@ -250,6 +273,8 @@ export const authService = {
     languagePref: string;
     hasSeenOnboarding: boolean;
     isEmailVerified: boolean;
+    profilePhoto?: string | null;
+    priorityColors?: unknown;
   }) {
     return {
       id: user.id,
@@ -260,6 +285,16 @@ export const authService = {
       languagePref: user.languagePref,
       hasSeenOnboarding: user.hasSeenOnboarding,
       isEmailVerified: user.isEmailVerified,
+      profilePhoto: user.profilePhoto ?? null,
+      priorityColors: user.priorityColors ?? null,
     };
+  },
+
+  async updateLanguage(userId: string, languagePref: "en" | "bn") {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { languagePref },
+    });
+    return this.toSafeUser(user);
   },
 };

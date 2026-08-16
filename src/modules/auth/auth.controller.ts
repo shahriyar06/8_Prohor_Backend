@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { authService } from "./auth.service";
 import { sendSuccess } from "@/utils/apiResponse";
 import { AppError } from "@/utils/AppError";
+import { uploadToCloudinary } from "@/utils/cloudinaryUpload";
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -75,7 +76,36 @@ export const authController = {
   },
 
   async updateProfile(req: Request, res: Response) {
-    const profile = await authService.updateProfile(req.user!.userId, req.body);
+    let profilePhotoUrl: string | undefined;
+    if (req.file) {
+      profilePhotoUrl = await uploadToCloudinary(
+        req.file.buffer,
+        `users/${req.user!.userId}/profile`,
+      );
+    }
+
+    const profile = await authService.updateProfile(req.user!.userId, {
+      ...req.body,
+      ...(profilePhotoUrl && { profilePhoto: profilePhotoUrl }),
+    });
     return sendSuccess(res, { user: profile }, "Profile updated");
+  },
+
+  async changePassword(req: Request, res: Response) {
+    await authService.changePassword(req.user!.userId, req.body);
+    return sendSuccess(
+      res,
+      null,
+      "Password changed successfully. Please login again.",
+    );
+  },
+
+  async updateLanguage(req: Request, res: Response) {
+    const { languagePref } = req.body;
+    const profile = await authService.updateLanguage(
+      req.user!.userId,
+      languagePref,
+    );
+    return sendSuccess(res, { user: profile }, "Language updated");
   },
 };
