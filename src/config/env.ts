@@ -22,5 +22,7 @@ export const env = {
   CLOUDINARY_CLOUD_NAME: required("CLOUDINARY_CLOUD_NAME"),
   CLOUDINARY_API_KEY: required("CLOUDINARY_API_KEY"),
   CLOUDINARY_API_SECRET: required("CLOUDINARY_API_SECRET"),
+  FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
+  ADMIN_PANEL_URL: process.env.ADMIN_PANEL_URL || "http://localhost:3001",
   NODE_ENV: process.env.NODE_ENV || "development",
 };

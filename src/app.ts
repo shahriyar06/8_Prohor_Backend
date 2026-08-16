@@ -7,11 +7,27 @@ import authRoutes from "@/modules/auth/auth.routes";
 import organizationRoutes from "@/modules/organization/organization.routes";
 import taskRoutes from "./modules/task/task.routes";
 import { errorHandler } from "@/middlewares/errorHandler";
+import { env } from "./config/env";
+
+const allowedOrigins = [env.FRONTEND_URL, env.ADMIN_PANEL_URL];
 
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: true, credentials: true }));
+    
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
 
