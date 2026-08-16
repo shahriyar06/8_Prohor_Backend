@@ -31,8 +31,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
-app.use("/api/auth", authLimiter);
+// const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 app.use("/api/auth", authRoutes);
 
 app.use("/api/organizations", organizationRoutes);

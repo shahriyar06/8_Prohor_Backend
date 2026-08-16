@@ -35,6 +35,7 @@ model User {
   hasSeenOnboarding  Boolean     @default(false) @map("has_seen_onboarding")
   role               UserRole    @default(user)
   isEmailVerified    Boolean     @default(false) @map("is_email_verified")
+  profilePhoto       String?     @map("profile_photo")
   priorityColors     Json?       @map("priority_colors")
 
   refreshTokens       RefreshToken[]
