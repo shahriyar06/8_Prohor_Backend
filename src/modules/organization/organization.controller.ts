@@ -4,6 +4,11 @@ import { sendSuccess } from "@/utils/apiResponse";
 import { uploadToCloudinary } from "@/utils/cloudinaryUpload";
 
 export const organizationController = {
+  async getMine(req: Request, res: Response) {
+    const org = await organizationService.getMyOrganization(req.user!.userId);
+    return sendSuccess(res, { organization: org });
+  },
+
   async update(req: Request, res: Response) {
     const organizationId = req.params.organizationId as string;
     await organizationService.updateOrganization(organizationId, req.body);
@@ -48,7 +53,7 @@ export const organizationController = {
     if (req.file) {
       profilePhotoUrl = await uploadToCloudinary(
         req.file.buffer,
-        `organizations/${organizationId}/members`
+        `organizations/${organizationId}/members`,
       );
     }
     await organizationService.addMember(organizationId, {
@@ -67,7 +72,11 @@ export const organizationController = {
   async updateMemberRole(req: Request, res: Response) {
     const organizationId = req.params.organizationId as string;
     const memberId = req.params.memberId as string;
-    await organizationService.updateMemberRole(organizationId, memberId, req.body);
+    await organizationService.updateMemberRole(
+      organizationId,
+      memberId,
+      req.body,
+    );
     return sendSuccess(res, null, "Member role updated");
   },
 
