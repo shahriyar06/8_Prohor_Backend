@@ -8,6 +8,7 @@ import organizationRoutes from "@/modules/organization/organization.routes";
 import taskRoutes from "./modules/task/task.routes";
 import { errorHandler } from "@/middlewares/errorHandler";
 import { env } from "./config/env";
+import incomeRoutes from "./modules/income/income.routes";
 
 const allowedOrigins = [env.FRONTEND_URL, env.ADMIN_PANEL_URL];
 
@@ -37,6 +38,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/organizations", organizationRoutes);
 
 app.use("/api/tasks", taskRoutes);
+
+app.use("/api/income", incomeRoutes);
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 app.use(errorHandler);
