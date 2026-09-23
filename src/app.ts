@@ -11,6 +11,7 @@ import { env } from "./config/env";
 import incomeRoutes from "./modules/income/income.routes";
 import expenseRoutes from "./modules/expense/expense.routes";
 import liabilityRoutes from "./modules/liability/liability.routes";
+import receivableRoutes from "./modules/receivable/receivable.routes";
 
 const allowedOrigins = [env.FRONTEND_URL, env.ADMIN_PANEL_URL];
 
@@ -46,6 +47,8 @@ app.use("/api/income", incomeRoutes);
 app.use("/api/expense", expenseRoutes);
 
 app.use("/api/liability", liabilityRoutes);
+
+app.use("/api/receivable", receivableRoutes);
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 app.use(errorHandler);
