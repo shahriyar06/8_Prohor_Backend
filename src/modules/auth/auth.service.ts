@@ -79,6 +79,20 @@ export const authService = {
             roleId: adminRole.id,
           },
         });
+
+        //  default income category
+        await tx.incomeCategory.create({
+          data: {
+            organizationId: organization.id,
+            name: "Other",
+            isDefault: true,
+          },
+        });
+      } else {
+        // Personal account er default income category
+        await tx.incomeCategory.create({
+          data: { userId: newUser.id, name: "Other", isDefault: true },
+        });
       }
 
       return newUser;
