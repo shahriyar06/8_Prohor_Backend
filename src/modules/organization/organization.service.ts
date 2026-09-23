@@ -12,6 +12,14 @@ import {
 const SALT_ROUNDS = 10;
 
 export const organizationService = {
+  async getMyOrganization(userId: string) {
+    const org = await prisma.organization.findFirst({
+      where: { ownerId: userId },
+    });
+    if (!org) throw new AppError("Organization not found", 404);
+    return org;
+  },
+
   async updateOrganization(
     organizationId: string,
     input: UpdateOrganizationInput,

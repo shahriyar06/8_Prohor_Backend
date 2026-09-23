@@ -64,6 +64,14 @@ export const authService = {
           },
         });
 
+        await tx.role.create({
+          data: {
+            organizationId: organization.id,
+            name: "Member",
+            isSystem: false,
+          },
+        });
+
         await tx.organizationMember.create({
           data: {
             organizationId: organization.id,
@@ -239,6 +247,14 @@ export const authService = {
 
   async updateProfile(userId: string, data: UpdateProfileInput) {
     const user = await prisma.user.update({ where: { id: userId }, data });
+
+    if (data.priorityColors && user.accountType === "organization") {
+      await prisma.organization.updateMany({
+        where: { ownerId: userId },
+        data: { priorityColors: data.priorityColors },
+      });
+    }
+
     return this.toSafeUser(user);
   },
 

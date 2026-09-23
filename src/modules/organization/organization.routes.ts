@@ -14,13 +14,41 @@ import { upload } from "@/middlewares/upload";
 
 const router = Router({ mergeParams: true });
 
+router.get("/mine", authenticate, asyncHandler(organizationController.getMine));
 router.get("/:organizationId", authenticate, organizationController.get);
-router.patch("/:organizationId", authenticate, requireOrgAdmin, validate(updateOrganizationSchema), asyncHandler(organizationController.update));
+router.patch(
+  "/:organizationId",
+  authenticate,
+  requireOrgAdmin,
+  validate(updateOrganizationSchema),
+  asyncHandler(organizationController.update),
+);
 
-router.post("/:organizationId/roles", authenticate, requireOrgAdmin, validate(createRoleSchema), asyncHandler(organizationController.createRole));
-router.get("/:organizationId/roles", authenticate, asyncHandler(organizationController.listRoles));
-router.patch("/:organizationId/roles/:roleId", authenticate, requireOrgAdmin, validate(createRoleSchema), asyncHandler(organizationController.updateRole));
-router.delete("/:organizationId/roles/:roleId", authenticate, requireOrgAdmin, asyncHandler(organizationController.deleteRole));
+router.post(
+  "/:organizationId/roles",
+  authenticate,
+  requireOrgAdmin,
+  validate(createRoleSchema),
+  asyncHandler(organizationController.createRole),
+);
+router.get(
+  "/:organizationId/roles",
+  authenticate,
+  asyncHandler(organizationController.listRoles),
+);
+router.patch(
+  "/:organizationId/roles/:roleId",
+  authenticate,
+  requireOrgAdmin,
+  validate(createRoleSchema),
+  asyncHandler(organizationController.updateRole),
+);
+router.delete(
+  "/:organizationId/roles/:roleId",
+  authenticate,
+  requireOrgAdmin,
+  asyncHandler(organizationController.deleteRole),
+);
 
 router.post(
   "/:organizationId/members",
@@ -28,10 +56,25 @@ router.post(
   requireOrgAdmin,
   upload.single("profilePhoto"),
   validate(addMemberSchema),
-  asyncHandler(organizationController.addMember)
+  asyncHandler(organizationController.addMember),
 );
-router.get("/:organizationId/members", authenticate, asyncHandler(organizationController.listMembers));
-router.patch("/:organizationId/members/:memberId/role", authenticate, requireOrgAdmin, validate(updateMemberRoleSchema), asyncHandler(organizationController.updateMemberRole));
-router.delete("/:organizationId/members/:memberId", authenticate, requireOrgAdmin, asyncHandler(organizationController.removeMember));
+router.get(
+  "/:organizationId/members",
+  authenticate,
+  asyncHandler(organizationController.listMembers),
+);
+router.patch(
+  "/:organizationId/members/:memberId/role",
+  authenticate,
+  requireOrgAdmin,
+  validate(updateMemberRoleSchema),
+  asyncHandler(organizationController.updateMemberRole),
+);
+router.delete(
+  "/:organizationId/members/:memberId",
+  authenticate,
+  requireOrgAdmin,
+  asyncHandler(organizationController.removeMember),
+);
 
 export default router;
