@@ -56,6 +56,8 @@ model User {
 
   liabilities Liability[]
 
+  receivables Receivable[]
+
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
@@ -111,6 +113,8 @@ model Organization {
   expenses          Expense[]
 
   liabilities Liability[]
+
+  receivables Receivable[]
 
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -437,4 +441,34 @@ model Liability {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("liabilities")
+}
+
+enum ReceivableStatus {
+  pending
+  partial
+  received
+}
+
+model Receivable {
+  id              String   @id @default(uuid())
+  userId          String?  @map("user_id")
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdByName   String   @map("created_by_name")
+
+  organizationId  String?  @map("organization_id")
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  personName      String   @map("person_name")
+  amount          Decimal  @db.Decimal(12, 2)
+  receivedAmount  Decimal  @default(0) @db.Decimal(12, 2) @map("received_amount")
+  currency        String   @default("BDT")
+  reason          String?
+  dueDate         DateTime @map("due_date")
+  status          ReceivableStatus @default(pending)
+  remindBeforeDays Int?    @map("remind_before_days")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("receivables")
 }
