@@ -88,9 +88,23 @@ export const authService = {
             isDefault: true,
           },
         });
+
+        //  default expense category
+        await tx.expenseCategory.create({
+          data: {
+            organizationId: organization.id,
+            name: "Other",
+            isDefault: true,
+          },
+        });
       } else {
         // Personal account er default income category
         await tx.incomeCategory.create({
+          data: { userId: newUser.id, name: "Other", isDefault: true },
+        });
+
+        // Personal account er default expense category
+        await tx.expenseCategory.create({
           data: { userId: newUser.id, name: "Other", isDefault: true },
         });
       }
