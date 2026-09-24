@@ -241,4 +241,33 @@ export const organizationService = {
       throw new AppError("Failed to remove member. Please try again.", 500);
     }
   },
+
+  async setRolePermissions(
+    organizationId: string,
+    roleId: string,
+    permissionKeys: string[],
+  ) {
+    const role = await prisma.role.findFirst({
+      where: { id: roleId, organizationId },
+    });
+    if (!role) throw new AppError("Role not found", 404);
+    if (role.isSystem)
+      throw new AppError("Admin role always has full access", 403);
+
+    await prisma.$transaction([
+      prisma.rolePermission.deleteMany({ where: { roleId } }),
+      prisma.rolePermission.createMany({
+        data: permissionKeys.map((key) => ({ roleId, permissionKey: key })),
+      }),
+    ]);
+  },
+
+  async getRolePermissions(organizationId: string, roleId: string) {
+    const role = await prisma.role.findFirst({
+      where: { id: roleId, organizationId },
+      include: { permissions: true },
+    });
+    if (!role) throw new AppError("Role not found", 404);
+    return role;
+  },
 };

@@ -86,4 +86,25 @@ export const organizationController = {
     await organizationService.removeMember(organizationId, memberId);
     return sendSuccess(res, null, "Member removed");
   },
+
+  async getRolePermissions(req: Request, res: Response) {
+    const organizationId = req.params.organizationId as string;
+    const roleId = req.params.roleId as string;
+    const role = await organizationService.getRolePermissions(
+      organizationId,
+      roleId,
+    );
+    return sendSuccess(res, { role });
+  },
+
+  async setRolePermissions(req: Request, res: Response) {
+    const organizationId = req.params.organizationId as string;
+    const roleId = req.params.roleId as string;
+    await organizationService.setRolePermissions(
+      organizationId,
+      roleId,
+      req.body.permissionKeys,
+    );
+    return sendSuccess(res, null, "Permissions updated");
+  },
 };

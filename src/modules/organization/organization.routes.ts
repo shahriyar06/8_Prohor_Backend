@@ -6,6 +6,7 @@ import {
   updateOrganizationSchema,
   addMemberSchema,
   updateMemberRoleSchema,
+  setRolePermissionsSchema,
 } from "./organization.validation";
 import { asyncHandler } from "@/middlewares/errorHandler";
 import { authenticate } from "@/middlewares/authMiddleware";
@@ -75,6 +76,18 @@ router.delete(
   authenticate,
   requireOrgAdmin,
   asyncHandler(organizationController.removeMember),
+);
+router.get(
+  "/:organizationId/roles/:roleId/permissions",
+  authenticate,
+  asyncHandler(organizationController.getRolePermissions),
+);
+router.put(
+  "/:organizationId/roles/:roleId/permissions",
+  authenticate,
+  requireOrgAdmin,
+  validate(setRolePermissionsSchema),
+  asyncHandler(organizationController.setRolePermissions),
 );
 
 export default router;
