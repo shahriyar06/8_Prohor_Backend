@@ -39,7 +39,12 @@ export const updateMemberRoleSchema = z.object({
   roleId: z.string().uuid("Invalid role ID"),
 });
 
+export const setRolePermissionsSchema = z.object({
+  permissionKeys: z.array(z.string()),
+});
+
 export type CreateRoleInput = z.infer<typeof createRoleSchema>;
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 export type AddMemberInput = z.infer<typeof addMemberSchema>;
 export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>;
+export type SetRolePermissionsInput = z.infer<typeof setRolePermissionsSchema>;
