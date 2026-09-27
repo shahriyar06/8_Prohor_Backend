@@ -6,9 +6,12 @@ import {
 } from "./receivable.validation";
 import { asyncHandler } from "@/middlewares/errorHandler";
 import { authenticate } from "@/middlewares/authMiddleware";
+import { requirePlanAccess } from "@/middlewares/planMiddleware";
 
 const router = Router();
 router.use(authenticate);
+  
+router.use(requirePlanAccess("receivable")); 
 
 router.get("/summary", asyncHandler(receivableController.summary));
 router.post("/", validate(createReceivableSchema), asyncHandler(receivableController.create));
