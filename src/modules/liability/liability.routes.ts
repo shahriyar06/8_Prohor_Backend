@@ -6,9 +6,12 @@ import {
 } from "./liability.validation";
 import { asyncHandler } from "@/middlewares/errorHandler";
 import { authenticate } from "@/middlewares/authMiddleware";
+import { requirePlanAccess } from "@/middlewares/planMiddleware";
 
 const router = Router();
 router.use(authenticate);
+
+router.use(requirePlanAccess("liability")); 
 
 router.get("/summary", asyncHandler(liabilityController.summary));
 router.post("/", validate(createLiabilitySchema), asyncHandler(liabilityController.create));

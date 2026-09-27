@@ -6,9 +6,12 @@ import {
 } from "./expense.validation";
 import { asyncHandler } from "@/middlewares/errorHandler";
 import { authenticate } from "@/middlewares/authMiddleware";
+import { requirePlanAccess } from "@/middlewares/planMiddleware";
 
 const router = Router();
 router.use(authenticate);
+
+router.use(requirePlanAccess("expense")); 
 
 router.post("/categories", validate(createCategorySchema), asyncHandler(expenseController.createCategory));
 router.get("/categories", asyncHandler(expenseController.listCategories));
