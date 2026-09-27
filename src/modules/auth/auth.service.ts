@@ -18,6 +18,7 @@ import {
   UpdateProfileInput,
   ChangePasswordInput,
 } from "./auth.validation";
+import { getEffectivePlan, PLAN_CONFIGS } from "@/config/plans";
 
 const SALT_ROUNDS = 10;
 const OTP_EXPIRY_MINUTES = 1;
@@ -45,6 +46,7 @@ export const authService = {
           passwordHash,
           accountType: input.accountType,
           isEmailVerified,
+          trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
       });
 
@@ -308,18 +310,12 @@ export const authService = {
     });
   },
 
-  toSafeUser(user: {
-    id: string;
-    name: string;
-    email: string;
-    accountType: string;
-    role: string;
-    languagePref: string;
-    hasSeenOnboarding: boolean;
-    isEmailVerified: boolean;
-    profilePhoto?: string | null;
-    priorityColors?: unknown;
-  }) {
+  toSafeUser(user: any) {
+    const effectivePlan = getEffectivePlan(
+      user.accountType,
+      user.subscriptionPlan,
+      user.trialEndsAt,
+    );
     return {
       id: user.id,
       name: user.name,
@@ -331,6 +327,9 @@ export const authService = {
       isEmailVerified: user.isEmailVerified,
       profilePhoto: user.profilePhoto ?? null,
       priorityColors: user.priorityColors ?? null,
+      plan: effectivePlan,
+      allowedRoutes: PLAN_CONFIGS[effectivePlan]?.routes ?? [],
+      trialEndsAt: user.trialEndsAt,
     };
   },
 

@@ -9,9 +9,12 @@ import {
 } from "./income.validation";
 import { asyncHandler } from "@/middlewares/errorHandler";
 import { authenticate } from "@/middlewares/authMiddleware";
+import { requirePlanAccess } from "@/middlewares/planMiddleware";
 
 const router = Router();
 router.use(authenticate);
+
+router.use(requirePlanAccess("income")); 
 
 router.post("/categories", validate(createCategorySchema), asyncHandler(incomeController.createCategory));
 router.get("/categories", asyncHandler(incomeController.listCategories));
