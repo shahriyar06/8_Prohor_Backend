@@ -47,6 +47,7 @@ export const authService = {
           accountType: input.accountType,
           isEmailVerified,
           trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          subscriptionPlan: input.accountType === "organization" ? "organization_basic" : "personal_basic",
         },
       });
 
