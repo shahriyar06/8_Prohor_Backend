@@ -3,19 +3,41 @@ import { liabilityService } from "./liability.service";
 import { sendSuccess } from "@/utils/apiResponse";
 import { prisma } from "@/config/prisma";
 import { AppError } from "@/utils/AppError";
+import { getOrgContext } from "@/utils/getOrgContext";
 
 export const liabilityController = {
   async create(req: Request, res: Response) {
-    const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    });
     if (!user) throw new AppError("User not found", 404);
-    const liability = await liabilityService.createLiability(req.user!.userId, user.name, req.body);
+    const organizationId = await getOrgContext(req.user!.userId);
+
+    const liability = await liabilityService.createLiability(
+      req.user!.userId,
+      user.name,
+      {
+        ...req.body,
+        organizationId: organizationId ?? undefined,
+      },
+    );
     return sendSuccess(res, { liability }, "Liability added", 201);
   },
 
   async list(req: Request, res: Response) {
-    const organizationId = req.query.organizationId as string | undefined;
-    const liabilities = await liabilityService.listLiabilities(req.user!.userId, organizationId);
-    return sendSuccess(res, { liabilities });
+    const organizationId = await getOrgContext(req.user!.userId);
+    const result = await liabilityService.listLiabilities(
+      req.user!.userId,
+      organizationId ?? undefined,
+      {
+        search: req.query.search as string | undefined,
+        date: req.query.date as string | undefined,
+        status: req.query.status as string | undefined,
+        page: Number(req.query.page) || 1,
+        limit: Number(req.query.limit) || 15,
+      },
+    );
+    return sendSuccess(res, result);
   },
 
   async getById(req: Request, res: Response) {
@@ -43,8 +65,11 @@ export const liabilityController = {
   },
 
   async summary(req: Request, res: Response) {
-    const organizationId = req.query.organizationId as string | undefined;
-    const summary = await liabilityService.getSummary(req.user!.userId, organizationId);
+    const organizationId = await getOrgContext(req.user!.userId);
+    const summary = await liabilityService.getSummary(
+      req.user!.userId,
+      organizationId ?? undefined,
+    );
     return sendSuccess(res, { summary });
   },
 };
