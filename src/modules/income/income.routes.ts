@@ -14,17 +14,37 @@ import { requirePlanAccess } from "@/middlewares/planMiddleware";
 const router = Router();
 router.use(authenticate);
 
-router.use(requirePlanAccess("income")); 
+router.use(requirePlanAccess("income"));
 
-router.post("/categories", validate(createCategorySchema), asyncHandler(incomeController.createCategory));
+router.post(
+  "/categories",
+  validate(createCategorySchema),
+  asyncHandler(incomeController.createCategory),
+);
 router.get("/categories", asyncHandler(incomeController.listCategories));
-router.patch("/categories/:categoryId", validate(updateCategorySchema), asyncHandler(incomeController.updateCategory));
-router.delete("/categories/:categoryId", asyncHandler(incomeController.deleteCategory));
+router.patch(
+  "/categories/:categoryId",
+  validate(updateCategorySchema),
+  asyncHandler(incomeController.updateCategory),
+);
+router.delete(
+  "/categories/:categoryId",
+  asyncHandler(incomeController.deleteCategory),
+);
 
-router.post("/", validate(createIncomeSchema), asyncHandler(incomeController.createIncome));
+router.post(
+  "/",
+  validate(createIncomeSchema),
+  asyncHandler(incomeController.createIncome),
+);
 router.get("/", asyncHandler(incomeController.listIncomes));
+router.get("/summary", asyncHandler(incomeController.summary));
 router.get("/:incomeId", asyncHandler(incomeController.getIncomeById));
-router.patch("/:incomeId", validate(updateIncomeSchema), asyncHandler(incomeController.updateIncome));
+router.patch(
+  "/:incomeId",
+  validate(updateIncomeSchema),
+  asyncHandler(incomeController.updateIncome),
+);
 router.delete("/:incomeId", asyncHandler(incomeController.deleteIncome));
 
 export default router;
