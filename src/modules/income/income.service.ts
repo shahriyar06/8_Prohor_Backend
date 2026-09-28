@@ -10,49 +10,128 @@ import {
 export const incomeService = {
   // ---- CATEGORY ----
 
-  async createCategory(userId: string, input: CreateCategoryInput) {
+  // async createCategory(userId: string, input: CreateCategoryInput) {
+  //   const existing = await prisma.incomeCategory.findFirst({
+  //     where: input.organizationId
+  //       ? {
+  //           organizationId: input.organizationId,
+  //           name: { equals: input.name, mode: "insensitive" },
+  //         }
+  //       : {
+  //           userId,
+  //           organizationId: null,
+  //           name: { equals: input.name, mode: "insensitive" },
+  //         },
+  //   });
+  //   if (existing)
+  //     throw new AppError("Category with this name already exists", 409);
+
+  //   return prisma.incomeCategory.create({
+  //     data: {
+  //       name: input.name,
+  //       userId: input.organizationId ? null : userId,
+  //       organizationId: input.organizationId ?? null,
+  //       isDefault: false,
+  //     },
+  //   });
+  // },
+
+  async createCategory(
+    userId: string,
+    organizationId: string | null,
+    input: { name: string },
+  ) {
     const existing = await prisma.incomeCategory.findFirst({
-      where: input.organizationId
-        ? { organizationId: input.organizationId, name: { equals: input.name, mode: "insensitive" } }
-        : { userId, organizationId: null, name: { equals: input.name, mode: "insensitive" } },
+      where: organizationId
+        ? { organizationId, name: { equals: input.name, mode: "insensitive" } }
+        : {
+            userId,
+            organizationId: null,
+            name: { equals: input.name, mode: "insensitive" },
+          },
     });
-    if (existing) throw new AppError("Category with this name already exists", 409);
+    if (existing)
+      throw new AppError("Category with this name already exists", 409);
 
     return prisma.incomeCategory.create({
       data: {
         name: input.name,
-        userId: input.organizationId ? null : userId,
-        organizationId: input.organizationId ?? null,
+        userId: organizationId ? null : userId,
+        organizationId,
         isDefault: false,
       },
     });
   },
 
-  async listCategories(userId: string, organizationId?: string) {
+  // async listCategories(userId: string, organizationId?: string) {
+  //   return prisma.incomeCategory.findMany({
+  //     where: organizationId
+  //       ? { organizationId }
+  //       : { userId, organizationId: null },
+  //     orderBy: [{ isDefault: "asc" }, { createdAt: "asc" }],
+  //   });
+  // },
+
+  async listCategories(
+    userId: string,
+    organizationId?: string,
+    onlyActive = false,
+  ) {
     return prisma.incomeCategory.findMany({
-      where: organizationId
-        ? { organizationId }
-        : { userId, organizationId: null },
+      where: {
+        ...(organizationId
+          ? { organizationId }
+          : { userId, organizationId: null }),
+        ...(onlyActive && { isActive: true }),
+      },
       orderBy: [{ isDefault: "asc" }, { createdAt: "asc" }],
     });
   },
 
-  async updateCategory(categoryId: string, input: UpdateCategoryInput) {
-    const category = await prisma.incomeCategory.findUnique({ where: { id: categoryId } });
-    if (!category) throw new AppError("Category not found", 404);
-    if (category.isDefault) throw new AppError("Default category cannot be renamed", 403);
+  // async updateCategory(categoryId: string, input: UpdateCategoryInput) {
+  //   const category = await prisma.incomeCategory.findUnique({
+  //     where: { id: categoryId },
+  //   });
+  //   if (!category) throw new AppError("Category not found", 404);
+  //   if (category.isDefault)
+  //     throw new AppError("Default category cannot be renamed", 403);
 
-    return prisma.incomeCategory.update({ where: { id: categoryId }, data: { name: input.name } });
+  //   return prisma.incomeCategory.update({
+  //     where: { id: categoryId },
+  //     data: { name: input.name },
+  //   });
+  // },
+
+  async updateCategory(
+    categoryId: string,
+    input: { name?: string; isActive?: boolean },
+  ) {
+    const category = await prisma.incomeCategory.findUnique({
+      where: { id: categoryId },
+    });
+    if (!category) throw new AppError("Category not found", 404);
+    if (category.isDefault && input.name)
+      throw new AppError("Default category cannot be renamed", 403);
+    return prisma.incomeCategory.update({
+      where: { id: categoryId },
+      data: input,
+    });
   },
 
   async deleteCategory(categoryId: string) {
-    const category = await prisma.incomeCategory.findUnique({ where: { id: categoryId } });
+    const category = await prisma.incomeCategory.findUnique({
+      where: { id: categoryId },
+    });
     if (!category) throw new AppError("Category not found", 404);
-    if (category.isDefault) throw new AppError("Default category cannot be deleted", 403);
+    if (category.isDefault)
+      throw new AppError("Default category cannot be deleted", 403);
 
     const incomeCount = await prisma.income.count({ where: { categoryId } });
     if (incomeCount > 0) {
-      throw new AppError("Cannot delete a category that has income entries", 400);
+      throw new AppError(
+        "Cannot delete a category that has income entries",
+        400,
+      );
     }
 
     await prisma.incomeCategory.delete({ where: { id: categoryId } });
@@ -60,8 +139,14 @@ export const incomeService = {
 
   // ---- INCOME ----
 
-  async createIncome(userId: string, userName: string, input: CreateIncomeInput) {
-    const category = await prisma.incomeCategory.findUnique({ where: { id: input.categoryId } });
+  async createIncome(
+    userId: string,
+    userName: string,
+    input: CreateIncomeInput,
+  ) {
+    const category = await prisma.incomeCategory.findUnique({
+      where: { id: input.categoryId },
+    });
     if (!category) throw new AppError("Category not found", 404);
 
     return prisma.income.create({
@@ -82,12 +167,61 @@ export const incomeService = {
     });
   },
 
-  async listIncomes(userId: string, organizationId?: string) {
-    return prisma.income.findMany({
-      where: organizationId ? { organizationId } : { userId, organizationId: null },
-      include: { category: true },
-      orderBy: { date: "desc" },
-    });
+  // async listIncomes(userId: string, organizationId?: string) {
+  //   return prisma.income.findMany({
+  //     where: organizationId
+  //       ? { organizationId }
+  //       : { userId, organizationId: null },
+  //     include: { category: true },
+  //     orderBy: { date: "desc" },
+  //   });
+  // },
+
+  async listIncomes(
+    userId: string,
+    organizationId: string | undefined,
+    filters: { search?: string; date?: string; page: number; limit: number },
+  ) {
+    const where: Record<string, unknown> = organizationId
+      ? { organizationId }
+      : { userId, organizationId: null };
+
+    if (filters.search) {
+      where.OR = [
+        { source: { contains: filters.search, mode: "insensitive" } },
+        {
+          category: { name: { contains: filters.search, mode: "insensitive" } },
+        },
+      ];
+    }
+    if (filters.date) {
+      const start = new Date(filters.date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(filters.date);
+      end.setHours(23, 59, 59, 999);
+      where.date = { gte: start, lte: end };
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.income.findMany({
+        where,
+        include: { category: true },
+        orderBy: { date: "desc" },
+        skip: (filters.page - 1) * filters.limit,
+        take: filters.limit,
+      }),
+      prisma.income.count({ where }),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page: filters.page,
+        limit: filters.limit,
+        total,
+        totalPages: Math.ceil(total / filters.limit),
+      },
+    };
   },
 
   async getIncomeById(incomeId: string) {
@@ -104,7 +238,9 @@ export const incomeService = {
     if (!income) throw new AppError("Income not found", 404);
 
     if (input.categoryId) {
-      const category = await prisma.incomeCategory.findUnique({ where: { id: input.categoryId } });
+      const category = await prisma.incomeCategory.findUnique({
+        where: { id: input.categoryId },
+      });
       if (!category) throw new AppError("Category not found", 404);
     }
 
@@ -119,5 +255,32 @@ export const incomeService = {
     const income = await prisma.income.findUnique({ where: { id: incomeId } });
     if (!income) throw new AppError("Income not found", 404);
     await prisma.income.delete({ where: { id: incomeId } });
+  },
+
+  async getSummary(userId: string, organizationId?: string) {
+    const base = organizationId
+      ? { organizationId }
+      : { userId, organizationId: null };
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+
+    const [all, month, today] = await Promise.all([
+      prisma.income.aggregate({ where: base, _sum: { amount: true } }),
+      prisma.income.aggregate({
+        where: { ...base, date: { gte: monthStart } },
+        _sum: { amount: true },
+      }),
+      prisma.income.aggregate({
+        where: { ...base, date: { gte: todayStart } },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    return {
+      total: Number(all._sum.amount ?? 0),
+      thisMonth: Number(month._sum.amount ?? 0),
+      today: Number(today._sum.amount ?? 0),
+    };
   },
 };
