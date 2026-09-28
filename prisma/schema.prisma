@@ -338,7 +338,8 @@ model IncomeCategory {
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   name           String
-  isDefault      Boolean  @default(false) @map("is_default") // "Other" category, delete করা যাবে না
+  isDefault      Boolean  @default(false) @map("is_default")
+  isActive Boolean @default(true) @map("is_active")
 
   incomes        Income[]
 
