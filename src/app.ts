@@ -16,6 +16,7 @@ import receivableRoutes from "./modules/receivable/receivable.routes";
 const allowedOrigins = [env.FRONTEND_URL, env.ADMIN_PANEL_URL];
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(helmet());
     
