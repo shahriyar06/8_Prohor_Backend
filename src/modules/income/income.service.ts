@@ -9,33 +9,6 @@ import {
 
 export const incomeService = {
   // ---- CATEGORY ----
-
-  // async createCategory(userId: string, input: CreateCategoryInput) {
-  //   const existing = await prisma.incomeCategory.findFirst({
-  //     where: input.organizationId
-  //       ? {
-  //           organizationId: input.organizationId,
-  //           name: { equals: input.name, mode: "insensitive" },
-  //         }
-  //       : {
-  //           userId,
-  //           organizationId: null,
-  //           name: { equals: input.name, mode: "insensitive" },
-  //         },
-  //   });
-  //   if (existing)
-  //     throw new AppError("Category with this name already exists", 409);
-
-  //   return prisma.incomeCategory.create({
-  //     data: {
-  //       name: input.name,
-  //       userId: input.organizationId ? null : userId,
-  //       organizationId: input.organizationId ?? null,
-  //       isDefault: false,
-  //     },
-  //   });
-  // },
-
   async createCategory(
     userId: string,
     organizationId: string | null,
@@ -63,44 +36,25 @@ export const incomeService = {
     });
   },
 
-  // async listCategories(userId: string, organizationId?: string) {
-  //   return prisma.incomeCategory.findMany({
-  //     where: organizationId
-  //       ? { organizationId }
-  //       : { userId, organizationId: null },
-  //     orderBy: [{ isDefault: "asc" }, { createdAt: "asc" }],
-  //   });
-  // },
-
   async listCategories(
     userId: string,
-    organizationId?: string,
-    onlyActive = false,
+    organizationId: string | undefined,
+    filters: { onlyActive?: boolean; search?: string; status?: string },
   ) {
+    const where: Record<string, unknown> = organizationId
+      ? { organizationId }
+      : { userId, organizationId: null };
+    if (filters.onlyActive) where.isActive = true;
+    if (filters.search)
+      where.name = { contains: filters.search, mode: "insensitive" };
+    if (filters.status && filters.status !== "all")
+      where.isActive = filters.status === "active";
+
     return prisma.incomeCategory.findMany({
-      where: {
-        ...(organizationId
-          ? { organizationId }
-          : { userId, organizationId: null }),
-        ...(onlyActive && { isActive: true }),
-      },
+      where,
       orderBy: [{ isDefault: "asc" }, { createdAt: "asc" }],
     });
   },
-
-  // async updateCategory(categoryId: string, input: UpdateCategoryInput) {
-  //   const category = await prisma.incomeCategory.findUnique({
-  //     where: { id: categoryId },
-  //   });
-  //   if (!category) throw new AppError("Category not found", 404);
-  //   if (category.isDefault)
-  //     throw new AppError("Default category cannot be renamed", 403);
-
-  //   return prisma.incomeCategory.update({
-  //     where: { id: categoryId },
-  //     data: { name: input.name },
-  //   });
-  // },
 
   async updateCategory(
     categoryId: string,
@@ -138,7 +92,6 @@ export const incomeService = {
   },
 
   // ---- INCOME ----
-
   async createIncome(
     userId: string,
     userName: string,
@@ -166,16 +119,6 @@ export const incomeService = {
       include: { category: true },
     });
   },
-
-  // async listIncomes(userId: string, organizationId?: string) {
-  //   return prisma.income.findMany({
-  //     where: organizationId
-  //       ? { organizationId }
-  //       : { userId, organizationId: null },
-  //     include: { category: true },
-  //     orderBy: { date: "desc" },
-  //   });
-  // },
 
   async listIncomes(
     userId: string,
