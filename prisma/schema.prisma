@@ -383,6 +383,7 @@ model ExpenseCategory {
 
   name           String
   isDefault      Boolean  @default(false) @map("is_default")
+  isActive Boolean @default(true) @map("is_active")
 
   expenses       Expense[]
 
